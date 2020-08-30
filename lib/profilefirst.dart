@@ -6,6 +6,10 @@ import 'package:page_transition/page_transition.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'dart:async';
 import 'dart:math';
+import 'package:intl/intl.dart';
+import 'package:time_formatter/time_formatter.dart';
+
+
 
 
 
@@ -62,6 +66,8 @@ class _ProfileFirstState extends State<ProfileFirst> {
   int maxtemp;
   int sunrise;
   int sunset;
+  var date;
+  var formattedDate;
 
   String country;
   String cityname;
@@ -102,6 +108,8 @@ class _ProfileFirstState extends State<ProfileFirst> {
       lat =  weatherData['coord']['lat'].toInt();
       country = weatherData['sys']['country'];
     print('${weatherData['main']['temp']}');
+     date = DateTime.fromMillisecondsSinceEpoch(sunrise);
+     formattedDate = DateFormat.yMMMd().format(date);
     });
   }
   Future<bool> _onBackPressed() {
@@ -125,10 +133,49 @@ class _ProfileFirstState extends State<ProfileFirst> {
     ) ??
         false;
   }
+  String readTimestamp(int timestamp) {
+    var now = DateTime.now();
+    var format = DateFormat('HH:mm ');
+    var date = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
+    var diff = now.difference(date);
+    var time = '';
+
+    if (diff.inSeconds <= 0 || diff.inSeconds > 0 && diff.inMinutes == 0 || diff.inMinutes > 0 && diff.inHours == 0 || diff.inHours > 0 && diff.inDays == 0) {
+      time = format.format(date);
+    } else if (diff.inDays > 0 && diff.inDays < 7) {
+      if (diff.inDays == 1) {
+        time = diff.inDays.toString() + ' DAY AGO';
+      } else {
+        time = diff.inDays.toString() + ' DAYS AGO';
+      }
+    } else {
+      if (diff.inDays == 7) {
+        time = (diff.inDays / 7).floor().toString() + ' WEEK AGO';
+      } else {
+
+        time = (diff.inDays / 7).floor().toString() + ' WEEKS AGO';
+      }
+    }
+
+    return time;
+  }
+  String convertTimeStamp(timeStamp){
+//Pass the epoch server time and the it will format it for you
+    String formatted = formatTime(timeStamp).toString();
+    return formatted;
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xffF8F8FA),
+      floatingActionButton: FloatingActionButton(
+        onPressed: ()async {
+          var weatherData = await WeatherModel().getLocationWeather();
+          updateUI(weatherData);
+        },
+        child: Icon(Icons.gps_fixed),
+        backgroundColor: Colors.blue[700],
+      ),
       body: Stack(
         overflow: Overflow.visible,
         children: <Widget>[
@@ -435,7 +482,7 @@ class _ProfileFirstState extends State<ProfileFirst> {
                                       children: <Widget>[
                                         Image.asset('assets/014-haze.png', width: 60,),
 
-                                        Text('$sunrise', style: TextStyle(
+                                        Text(  readTimestamp(sunrise.toInt()), style: TextStyle(
                                             fontSize: 20,
                                             color: Colors.blueAccent
                                         ),)
@@ -458,7 +505,7 @@ class _ProfileFirstState extends State<ProfileFirst> {
                                       children: <Widget>[
                                         Image.asset('assets/009-sunset.png', width: 60,),
 
-                                        Text('$sunset', style: TextStyle(
+                                        Text(readTimestamp(sunset.toInt()), style: TextStyle(
                                             fontSize: 20,
                                             color: Colors.blueAccent
                                         ),)

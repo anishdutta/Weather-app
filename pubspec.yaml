@@ -38,6 +38,10 @@ dev_dependencies:
   flutter_spinkit: ^3.1.0
   flappy_search_bar: ^1.7.2
   pull_to_refresh: ^1.6.1
+  intl: ^0.16.1
+  time_formatter: ^1.0.0
+
+
 
 
 
